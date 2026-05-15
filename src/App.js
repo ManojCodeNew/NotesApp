@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocalStorage } from "./Hooks/useLocalStorage";
+import CharCalculation from "./Components/CharCalculation";
 
 const styles = {
   main: {
@@ -22,19 +23,64 @@ const styles = {
     width: 'fit-content',
     padding: '10px',
     cursor: 'pointer'
+  },
+  status: {
+    color: 'gray'
+  },
+  allNote: {
+    fontWeight: 'bold'
+  },
+  count: {
+    backgroundColor: 'lightgray',
+    padding: '8px',
+    borderRadius: '50px'
+  },
+  noteCardMain: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  noteCard: {
+    borderWidth: '1px',
+    borderColor: 'gray',
+    borderStyle: 'solid',
+    padding: '10px',
+    width: '80vh',
+
+  },
+  searchedNoteCard: {
+    borderWidth: '1px',
+    borderColor: 'gray',
+    borderStyle: 'solid',
+    padding: '10px',
+    width: '80vh',
+    backgroundColor: 'lightgray'
+
   }
+
 }
 
 
 function App() {
+
   const [notes, setNotes] = useState({
     title: '',
     description: '',
     timestamp: 0
   })
-  // const [allNotes, setAllNotes] = useState([]);
-  const [value, setValue] = useLocalStorage('allNotes', [])
+  const [status, setStatus] = useState(null);
+  const [noteOp, setNoteOp] = useState("Add");
+  const [updateId, setUpdateId] = useState();
+  const [searchedNote, setSearchedNote] = useState();
+  const [searchText, setSearchText] = useState();
+  const titleRef = useRef();
+  // const statusRef = useRef();
 
+  const [value, setValue] = useLocalStorage('allNotes', [])
+  // Input Focus
+  useEffect(() => { titleRef.current.focus(); }, [])
+  // useEffect(() => { statusRef.current.scrollIntoView({ behavior: 'smooth' }); }, [status, value])
+
+  // Add Note Logics
   function handleChangeTitle(event) {
     setNotes(prev => ({
       ...prev,
@@ -50,26 +96,143 @@ function App() {
   }
 
   function addNotes() {
+    if (notes.title.length === 0 || notes.description.length === 0) {
+      alert("Empty title/description acceptable to save")
+      return
+    }
+
     let newNote = { ...notes, timestamp: new Date() }
     setNotes(newNote)
     let updatedNotes = [...value, newNote]
-    setValue(updatedNotes)
-    console.log(value);
+    setValue(updatedNotes);
+    setStatus("Notes Saved Success")
+    setNotes({
+      title: '',
+      description: '',
+      timestamp: ''
+    })
   }
-  console.log("local storaged data : ", value);
+
+  // Count total count logic
+  const totalCharCount = useCallback(() => {
+    console.log("total Char calculated");
+    return value.reduce((result, note) => {
+      return result += note.title.length + note.description.length
+    }, 0);
+
+  }, [value]);
+
+  // Format fetched Date Object
+  const getFormatedTime = (dateString) => {
+    let dateObject = new Date(dateString);
+    let hour = dateObject.getHours();
+    let minutes = dateObject.getMinutes();
+    let seconds = dateObject.getSeconds();
+    let amPm = hour < 12 ? 'am' : 'pm';
+
+    return hour + " : " + minutes + " : " + seconds + " " + amPm;
+  }
+
+  // Notes Total count
+  const notesTotalCount = useMemo(() => value.length, [value])
+
+  // delete note logic 
+  function deleteNote(index) {
+    let updatedNotes = value.filter((_, noteIndex) => noteIndex !== index)
+    setValue(updatedNotes)
+    setStatus("Note deleted success.")
+  }
+
+  // Update note logics
+  function setUpdateData(index) {
+    let updateAbleNotes = value.find((_, noteIndex) => noteIndex === index)
+    setNotes({
+      title: updateAbleNotes.title,
+      description: updateAbleNotes.description,
+    })
+    setNoteOp("Edit")
+    setUpdateId(index);
+  }
+
+  function updateNotes() {
+    if (notes.title.length === 0 || notes.description.length === 0) {
+      alert("Empty title/description acceptable to update")
+      return
+    }
+
+    let updatedNotesData = value.map((note, index) =>
+    (updateId === index
+      ? { title: notes.title, description: notes.description, timestamp: new Date() }
+      : note)
+    )
+
+    setValue(updatedNotesData);
+    setStatus("Notes Updated Success")
+    setNotes({
+      title: '',
+      description: '',
+      timestamp: ''
+    })
+    setUpdateId(null)
+    setNoteOp('Add')
+  }
+
+  // Search note logics
+  function search() {
+    let note = value.find(item => item.title === searchText)
+    if (note === undefined) {
+      setStatus("Search failed");
+      alert("Not Found")
+      return
+    }
+
+    setSearchedNote(note)
+    setStatus("Searched Success");
+  }
 
   return (
     <div >
       Notes App
-
+      {/* Add notes */}
       <div style={styles.main}>
         <label >Title</label>
-        <input style={styles.title} type='text' value={notes.title} onChange={(e) => handleChangeTitle(e)} />
+        <input style={styles.title} type='text' ref={titleRef} value={notes.title} onChange={(e) => handleChangeTitle(e)} />
         <label >Description</label>
         <textarea style={styles.textarea} value={notes.description} onChange={(e) => handleChangeDes(e)} />
-        <button style={styles.addBtn} onClick={() => addNotes()}>Add</button>
+        <button style={styles.addBtn} onClick={() => noteOp === 'Add' ? addNotes() : updateNotes()}>{noteOp}</button>
+        <p style={styles.status} >{status}</p>
       </div>
 
+      {/* Search */}
+      <div style={styles.main}>
+        <label style={styles?.allNote}>Search Notes : </label>
+        <input type="text" placeholder="Type title name to search" style={styles.title} value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+        <button style={styles.addBtn} onClick={() => search()}>Search</button>
+        {searchedNote && (
+          <div style={styles.searchedNoteCard}>
+            <p>Title : {searchedNote.title}</p>
+            <p>Description : {searchedNote.description}</p>
+            <p>timestamp : {getFormatedTime(searchedNote.timestamp)}</p>
+          </div>
+        )}
+      </div>
+
+      {/* list notes */}
+      <div style={styles.main}>
+        <p style={styles.allNote}>All Notes  <span style={styles.count}>{notesTotalCount}</span></p>
+        <div style={styles.noteCardMain}>
+          {value && value.map((note, index) => (
+            <div key={index} style={styles.noteCard} >
+              <h5>Title : {note.title}</h5>
+              <p>Description : {note.description}</p>
+              <p>timestamp : {getFormatedTime(note.timestamp)}</p>
+              <button onClick={() => setUpdateData(index)}>Edit</button>
+              <button onClick={() => deleteNote(index)}>Delete</button>
+            </div>
+          ))}
+        </div>
+        <CharCalculation totalCharCount={totalCharCount} />
+      </div>
     </div>
   );
 
