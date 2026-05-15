@@ -3,10 +3,10 @@ import { useLocalStorage } from "./Hooks/useLocalStorage";
 import CharCalculation from "./Components/CharCalculation";
 
 const styles = {
-  container : {
-      margin: '10px',
-      marginTop : '20px',
-      
+  container: {
+    margin: '10px',
+    marginTop: '20px',
+
   },
   main: {
     display: 'flex',
@@ -50,6 +50,7 @@ const styles = {
     borderStyle: 'solid',
     padding: '10px',
     width: '80vh',
+    margin: '10px'
 
   },
   searchedNoteCard: {
@@ -77,13 +78,16 @@ function App() {
   const [updateId, setUpdateId] = useState();
   const [searchedNote, setSearchedNote] = useState();
   const [searchText, setSearchText] = useState();
-  const titleRef = useRef();
-  // const statusRef = useRef();
+  const titleRef = useRef(null);
+  const statusRef = useRef(null);
 
   const [value, setValue] = useLocalStorage('allNotes', [])
   // Input Focus
   useEffect(() => { titleRef.current.focus(); }, [])
-  // useEffect(() => { statusRef.current.scrollIntoView({ behavior: 'smooth' }); }, [status, value])
+
+  if (status) {
+    statusRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   // Add Note Logics
   function handleChangeTitle(event) {
@@ -198,6 +202,7 @@ function App() {
   return (
     <div style={styles.container}>
       Notes App
+      <hr />
       {/* Add notes */}
       <div style={styles.main}>
         <label >Title</label>
@@ -205,9 +210,9 @@ function App() {
         <label >Description</label>
         <textarea style={styles.textarea} value={notes.description} onChange={(e) => handleChangeDes(e)} />
         <button style={styles.addBtn} onClick={() => noteOp === 'Add' ? addNotes() : updateNotes()}>{noteOp}</button>
-        <p style={styles.status} >{status}</p>
+        <p style={styles.status} ref={statusRef}>{status}</p>
       </div>
-
+      <hr />
       {/* Search */}
       <div style={styles.main}>
         <label style={styles?.allNote}>Search Notes : </label>
@@ -221,7 +226,7 @@ function App() {
           </div>
         )}
       </div>
-
+      <hr />
       {/* list notes */}
       <div style={styles.main}>
         <p style={styles.allNote}>All Notes  <span style={styles.count}>{notesTotalCount}</span></p>
@@ -236,11 +241,12 @@ function App() {
             </div>
           ))}
         </div>
-        <CharCalculation totalCharCount={totalCharCount} />
       </div>
+      <hr />
+
+      <CharCalculation totalCharCount={totalCharCount} />
     </div>
   );
-
 }
 
 export default App;
