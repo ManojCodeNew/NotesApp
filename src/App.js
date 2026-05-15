@@ -3,6 +3,11 @@ import { useLocalStorage } from "./Hooks/useLocalStorage";
 import CharCalculation from "./Components/CharCalculation";
 
 const styles = {
+  container : {
+      margin: '10px',
+      marginTop : '20px',
+      
+  },
   main: {
     display: 'flex',
     flexDirection: 'column',
@@ -191,7 +196,7 @@ function App() {
   }
 
   return (
-    <div >
+    <div style={styles.container}>
       Notes App
       {/* Add notes */}
       <div style={styles.main}>
