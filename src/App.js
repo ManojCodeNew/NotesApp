@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocalStorage } from "./Hooks/useLocalStorage";
 
 const styles = {
   main: {
@@ -31,7 +32,8 @@ function App() {
     description: '',
     timestamp: 0
   })
-  const [allNotes, setAllNotes] = useState([]);
+  // const [allNotes, setAllNotes] = useState([]);
+  const [value, setValue] = useLocalStorage('allNotes', [])
 
   function handleChangeTitle(event) {
     setNotes(prev => ({
@@ -50,10 +52,11 @@ function App() {
   function addNotes() {
     let newNote = { ...notes, timestamp: new Date() }
     setNotes(newNote)
-    let updatedNotes = [...allNotes, newNote]
-    setAllNotes(updatedNotes)
-    console.log(updatedNotes);
+    let updatedNotes = [...value, newNote]
+    setValue(updatedNotes)
+    console.log(value);
   }
+  console.log("local storaged data : ", value);
 
   return (
     <div >
