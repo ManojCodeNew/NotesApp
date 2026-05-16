@@ -12,7 +12,7 @@ const styles = {
 const CharCalculation = React.memo(({ totalCharCount }) => {
     return (
         <div style={styles.main}>
-            <p> All Notes Total character count : <b>{totalCharCount()}</b></p>
+            <p> All Notes Total character count : <b>{totalCharCount}</b></p>
         </div>
     )
 })

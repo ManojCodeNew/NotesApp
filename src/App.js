@@ -73,6 +73,7 @@ function App() {
     description: '',
     timestamp: 0
   })
+  const [allNotes, setAllNotes] = useState();
   const [status, setStatus] = useState(null);
   const [noteOp, setNoteOp] = useState("Add");
   const [updateId, setUpdateId] = useState();
@@ -80,10 +81,15 @@ function App() {
   const [searchText, setSearchText] = useState();
   const titleRef = useRef(null);
 
-  const {value, setValue} = useLocalStorage('allNotes', [])
+  const { savedNotes, setSaveNotes } = useLocalStorage('allNotes', [])
+
   // Input Focus
   useEffect(() => { titleRef.current.focus(); }, [])
 
+  // Store updated Notes to allNotes state
+  useEffect(() => {
+    setAllNotes(savedNotes)
+  }, [savedNotes])
 
 
   // Add Note Logics
@@ -102,15 +108,14 @@ function App() {
   }
 
   function addNotes() {
-    if (currentNote.title.length === 0 || currentNote.description.length === 0) {
+    if (currentNote.title.trim().length === 0 || currentNote.description.trim().length === 0) {
       alert("Empty title/description acceptable to save")
       return
     }
 
     let finalCurrentNote = { ...currentNote, timestamp: new Date() }
-    // setNotes(newNote)
-    let updatedNotes = [...value, finalCurrentNote]
-    setValue(updatedNotes);
+    let updatedNotes = [...allNotes, finalCurrentNote]
+    setSaveNotes(updatedNotes);
     setStatus("Notes Saved Success")
     setCurrentNote({
       title: '',
@@ -120,13 +125,12 @@ function App() {
   }
 
   // Count total count logic
-  const totalCharCount = useCallback(() => {
+  const totalCharCount = useMemo(() => {
     console.log("total Char calculated");
-    return value.reduce((result, note) => {
-      return result += note.title.length + note.description.length
+    return allNotes.reduce((totalCount, note) => {
+      return totalCount += note.title.length + note.description.length
     }, 0);
-
-  }, [value]);
+  }, [allNotes]);
 
   // Format fetched Date Object
   const getFormatedTime = (dateString) => {
@@ -140,19 +144,19 @@ function App() {
   }
 
   // Notes Total count
-  const notesTotalCount = useMemo(() => value.length, [value])
+  const notesTotalCount = useMemo(() => allNotes.length, [allNotes])
 
   // delete note logic 
   function deleteNote(index) {
     let updatedNotes = value.filter((_, noteIndex) => noteIndex !== index)
-    setValue(updatedNotes)
+    setSaveNotes(updatedNotes)
     setStatus("Note deleted success.")
   }
 
   // Update note logics
   function setUpdateData(index) {
     let updateAbleNote = value.find((_, noteIndex) => noteIndex === index)
-    setNotes({
+    setCurrentNote({
       title: updateAbleNote.title,
       description: updateAbleNote.description,
     })
@@ -172,9 +176,9 @@ function App() {
       : note)
     )
 
-    setValue(updatedNotes);
+    setSaveNotes(updatedNotes);
     setStatus("Notes Updated Success")
-    setNotes({
+    setCurrentNote({
       title: '',
       description: '',
       timestamp: ''
@@ -196,7 +200,7 @@ function App() {
     setStatus("Searched Success");
   }
 
-  let filterNotes = useMemo(()=>value.find(item => item.title === searchText),[searchText])
+  let filterNotes = useMemo(() => value.find(item => item.title === searchText), [searchText])
 
 
   return (
