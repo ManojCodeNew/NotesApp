@@ -10,15 +10,15 @@ function getLocalStorageData(key, initialValue) {
 }
 
 export function useLocalStorage(key, initialValue) {
-    const [value, setValue] = useState(() => {
+    const [savedNotes, setSaveNotes] = useState(() => {
         return getLocalStorageData(key, initialValue);
     })
 
     useEffect(() => {
         console.log("fetched localStorage data");
-        localStorage.setItem(key, JSON.stringify(value));
-    }, [value])
+        localStorage.setItem(key, JSON.stringify(savedNotes));
+    }, [savedNotes])
 
-    return [value, setValue]
+    return { savedNotes, setSaveNotes }
 }
 

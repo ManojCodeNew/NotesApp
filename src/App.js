@@ -68,7 +68,7 @@ const styles = {
 
 function App() {
 
-  const [notes, setNotes] = useState({
+  const [currentNote, setCurrentNote] = useState({
     title: '',
     description: '',
     timestamp: 0
@@ -79,43 +79,40 @@ function App() {
   const [searchedNote, setSearchedNote] = useState();
   const [searchText, setSearchText] = useState();
   const titleRef = useRef(null);
-  const statusRef = useRef(null);
 
-  const [value, setValue] = useLocalStorage('allNotes', [])
+  const {value, setValue} = useLocalStorage('allNotes', [])
   // Input Focus
   useEffect(() => { titleRef.current.focus(); }, [])
 
-  if (status) {
-    statusRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
+
 
   // Add Note Logics
   function handleChangeTitle(event) {
-    setNotes(prev => ({
+    setCurrentNote(prev => ({
       ...prev,
       title: event.target.value
     }))
   }
 
   function handleChangeDes(event) {
-    setNotes(prev => ({
+    setCurrentNote(prev => ({
       ...prev,
       description: event.target.value
     }))
   }
 
   function addNotes() {
-    if (notes.title.length === 0 || notes.description.length === 0) {
+    if (currentNote.title.length === 0 || currentNote.description.length === 0) {
       alert("Empty title/description acceptable to save")
       return
     }
 
-    let newNote = { ...notes, timestamp: new Date() }
-    setNotes(newNote)
-    let updatedNotes = [...value, newNote]
+    let finalCurrentNote = { ...currentNote, timestamp: new Date() }
+    // setNotes(newNote)
+    let updatedNotes = [...value, finalCurrentNote]
     setValue(updatedNotes);
     setStatus("Notes Saved Success")
-    setNotes({
+    setCurrentNote({
       title: '',
       description: '',
       timestamp: ''
@@ -154,28 +151,28 @@ function App() {
 
   // Update note logics
   function setUpdateData(index) {
-    let updateAbleNotes = value.find((_, noteIndex) => noteIndex === index)
+    let updateAbleNote = value.find((_, noteIndex) => noteIndex === index)
     setNotes({
-      title: updateAbleNotes.title,
-      description: updateAbleNotes.description,
+      title: updateAbleNote.title,
+      description: updateAbleNote.description,
     })
     setNoteOp("Edit")
     setUpdateId(index);
   }
 
   function updateNotes() {
-    if (notes.title.length === 0 || notes.description.length === 0) {
+    if (currentNote.title.length === 0 || currentNote.description.length === 0) {
       alert("Empty title/description acceptable to update")
       return
     }
 
-    let updatedNotesData = value.map((note, index) =>
+    let updatedNotes = value.map((note, index) =>
     (updateId === index
       ? { title: notes.title, description: notes.description, timestamp: new Date() }
       : note)
     )
 
-    setValue(updatedNotesData);
+    setValue(updatedNotes);
     setStatus("Notes Updated Success")
     setNotes({
       title: '',
@@ -188,16 +185,19 @@ function App() {
 
   // Search note logics
   function search() {
-    let note = value.find(item => item.title === searchText)
-    if (note === undefined) {
+    let searchedNote = value.find(item => item.title === searchText)
+    if (searchedNote === undefined) {
       setStatus("Search failed");
       alert("Not Found")
       return
     }
 
-    setSearchedNote(note)
+    // setSearchedNote(note)
     setStatus("Searched Success");
   }
+
+  let filterNotes = useMemo(()=>value.find(item => item.title === searchText),[searchText])
+
 
   return (
     <div style={styles.container}>
@@ -206,11 +206,11 @@ function App() {
       {/* Add notes */}
       <div style={styles.main}>
         <label >Title</label>
-        <input style={styles.title} type='text' ref={titleRef} value={notes.title} onChange={(e) => handleChangeTitle(e)} />
+        <input style={styles.title} type='text' ref={titleRef} value={currentNote.title} onChange={(e) => handleChangeTitle(e)} />
         <label >Description</label>
-        <textarea style={styles.textarea} value={notes.description} onChange={(e) => handleChangeDes(e)} />
+        <textarea style={styles.textarea} value={currentNote.description} onChange={(e) => handleChangeDes(e)} />
         <button style={styles.addBtn} onClick={() => noteOp === 'Add' ? addNotes() : updateNotes()}>{noteOp}</button>
-        <p style={styles.status} ref={statusRef}>{status}</p>
+        <p style={styles.status} >{status}</p>
       </div>
       <hr />
       {/* Search */}
@@ -222,7 +222,7 @@ function App() {
           <div style={styles.searchedNoteCard}>
             <p>Title : {searchedNote.title}</p>
             <p>Description : {searchedNote.description}</p>
-            <p>timestamp : {getFormatedTime(searchedNote.timestamp)}</p>
+            <p>createdAt : {getFormatedTime(searchedNote.timestamp)}</p>
           </div>
         )}
       </div>
@@ -231,15 +231,16 @@ function App() {
       <div style={styles.main}>
         <p style={styles.allNote}>All Notes  <span style={styles.count}>{notesTotalCount}</span></p>
         <div style={styles.noteCardMain}>
-          {value && value.map((note, index) => (
+          {value.length > 0 ? value.map((note, index) => (
             <div key={index} style={styles.noteCard} >
               <h5>Title : {note.title}</h5>
               <p>Description : {note.description}</p>
-              <p>timestamp : {getFormatedTime(note.timestamp)}</p>
+              <p>createdAt : {getFormatedTime(note.timestamp)}</p>
               <button onClick={() => setUpdateData(index)}>Edit</button>
               <button onClick={() => deleteNote(index)}>Delete</button>
             </div>
-          ))}
+          ))
+            : (<p style={styles.status}>Empty Notes</p>)}
         </div>
       </div>
       <hr />
