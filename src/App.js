@@ -75,8 +75,8 @@ function App() {
   })
   const [allNotes, setAllNotes] = useState();
   const [status, setStatus] = useState(null);
-  const [noteOp, setNoteOp] = useState("Add");
-  const [updateId, setUpdateId] = useState();
+  const [buttonName, setButtonName] = useState("Add");
+  const [updatableNoteId, setUpdateableNoteId] = useState();
   const [searchedNote, setSearchedNote] = useState();
   const [searchText, setSearchText] = useState();
   const titleRef = useRef(null);
@@ -148,31 +148,31 @@ function App() {
 
   // delete note logic 
   function deleteNote(index) {
-    let updatedNotes = value.filter((_, noteIndex) => noteIndex !== index)
+    let updatedNotes = allNotes.filter((_, noteIndex) => noteIndex !== index)
     setSaveNotes(updatedNotes)
     setStatus("Note deleted success.")
   }
 
   // Update note logics
   function setUpdateData(index) {
-    let updateAbleNote = value.find((_, noteIndex) => noteIndex === index)
+    let updateableNote = allNotes.find((_, noteIndex) => noteIndex === index)
     setCurrentNote({
-      title: updateAbleNote.title,
-      description: updateAbleNote.description,
+      title: updateableNote.title,
+      description: updateableNote.description,
     })
-    setNoteOp("Edit")
-    setUpdateId(index);
+    setButtonName("Edit")
+    setUpdateableNoteId(index);
   }
 
   function updateNotes() {
-    if (currentNote.title.length === 0 || currentNote.description.length === 0) {
+    if (currentNote.title.trim().length === 0 || currentNote.description.trim().length === 0) {
       alert("Empty title/description acceptable to update")
       return
     }
 
-    let updatedNotes = value.map((note, index) =>
-    (updateId === index
-      ? { title: notes.title, description: notes.description, timestamp: new Date() }
+    let updatedNotes = allNotes.map((note, index) =>
+    (updatableNoteId === index
+      ? { title: currentNote.title, description: currentNote.description, timestamp: new Date() }
       : note)
     )
 
@@ -183,13 +183,13 @@ function App() {
       description: '',
       timestamp: ''
     })
-    setUpdateId(null)
+    setUpdateableNoteId(null)
     setNoteOp('Add')
   }
 
   // Search note logics
   function search() {
-    let searchedNote = value.find(item => item.title === searchText)
+    let searchedNote = allNotes.find(item => item.title === searchText)
     if (searchedNote === undefined) {
       setStatus("Search failed");
       alert("Not Found")
@@ -200,7 +200,12 @@ function App() {
     setStatus("Searched Success");
   }
 
-  let filterNotes = useMemo(() => value.find(item => item.title === searchText), [searchText])
+  const displayNotes = useMemo(() => {
+    const query = searchText.trim().toLowerCase();
+    if (!query) return allNotes;
+
+    return allNotes.filter(note => note.title.toLowerCase().includes(query))
+  }, [searchText, allNotes])
 
 
   return (
