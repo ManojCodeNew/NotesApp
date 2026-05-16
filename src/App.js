@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLocalStorage } from "./Hooks/useLocalStorage";
 import CharCalculation from "./Components/CharCalculation";
+import { NotesContext } from "./Components/NotesContextProvider";
 
 const styles = {
   container: {
@@ -80,7 +81,8 @@ function App() {
   const [searchText, setSearchText] = useState();
   const titleRef = useRef(null);
 
-  const { savedNotes, setSaveNotes } = useLocalStorage('allNotes', [])
+  // const { savedNotes, setSaveNotes } = useLocalStorage('allNotes', [])
+  const { savedNotes, setSaveNotes } = useContext(NotesContext);
 
   // Input Focus
   useEffect(() => { titleRef.current.focus(); }, [])
