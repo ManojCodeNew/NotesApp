@@ -73,11 +73,10 @@ function App() {
     description: '',
     timestamp: 0
   })
-  const [allNotes, setAllNotes] = useState();
+  const [allNotes, setAllNotes] = useState([]);
   const [status, setStatus] = useState(null);
   const [buttonName, setButtonName] = useState("Add");
   const [updatableNoteId, setUpdateableNoteId] = useState();
-  const [searchedNote, setSearchedNote] = useState();
   const [searchText, setSearchText] = useState();
   const titleRef = useRef(null);
 
@@ -88,27 +87,32 @@ function App() {
 
   // Store updated Notes to allNotes state
   useEffect(() => {
-    setAllNotes(savedNotes)
+    if (savedNotes) return setAllNotes(savedNotes);
   }, [savedNotes])
 
 
   // Add Note Logics
-  function handleChangeTitle(event) {
+  const handleChangeTitle = useCallback((event) => {
     setCurrentNote(prev => ({
       ...prev,
       title: event.target.value
     }))
-  }
 
-  function handleChangeDes(event) {
+  }, [])
+
+  const handleChangeDes = useCallback((event) => {
     setCurrentNote(prev => ({
       ...prev,
       description: event.target.value
     }))
-  }
 
-  function addNotes() {
-    if (currentNote.title.trim().length === 0 || currentNote.description.trim().length === 0) {
+  }, [])
+
+  const addNotes = useCallback(() => {
+    const trimmedTitle = currentNote.title.trim();
+    const trimmedDesc = currentNote.description.trim();
+
+    if (trimmedTitle.length === 0 || trimmedDesc.length === 0) {
       alert("Empty title/description acceptable to save")
       return
     }
@@ -122,18 +126,18 @@ function App() {
       description: '',
       timestamp: ''
     })
-  }
+  }, [currentNote, allNotes, setSaveNotes])
 
   // Count total count logic
   const totalCharCount = useMemo(() => {
     console.log("total Char calculated");
-    return allNotes.reduce((totalCount, note) => {
-      return totalCount += note.title.length + note.description.length
+    return allNotes?.reduce((totalCount, note) => {
+      return totalCount += note?.title.length + note?.description.length
     }, 0);
   }, [allNotes]);
 
   // Format fetched Date Object
-  const getFormatedTime = (dateString) => {
+  const getFormatedTime = useCallback((dateString) => {
     let dateObject = new Date(dateString);
     let hour = dateObject.getHours();
     let minutes = dateObject.getMinutes();
@@ -141,38 +145,38 @@ function App() {
     let amPm = hour < 12 ? 'am' : 'pm';
 
     return hour + " : " + minutes + " : " + seconds + " " + amPm;
-  }
+  }, [])
 
   // Notes Total count
-  const notesTotalCount = useMemo(() => allNotes.length, [allNotes])
+  const notesTotalCount = useMemo(() => allNotes?.length, [allNotes])
 
   // delete note logic 
-  function deleteNote(index) {
-    let updatedNotes = allNotes.filter((_, noteIndex) => noteIndex !== index)
+  const deleteNote = useCallback((index) => {
+    let updatedNotes = allNotes?.filter((_, noteIndex) => noteIndex !== index)
     setSaveNotes(updatedNotes)
     setStatus("Note deleted success.")
-  }
+  }, [allNotes, setSaveNotes])
 
   // Update note logics
-  function setUpdateData(index) {
-    let updateableNote = allNotes.find((_, noteIndex) => noteIndex === index)
+  const setUpdateData = useCallback((index) => {
+    let updateableNote = allNotes?.find((_, noteIndex) => noteIndex === index)
     setCurrentNote({
       title: updateableNote.title,
       description: updateableNote.description,
     })
     setButtonName("Edit")
     setUpdateableNoteId(index);
-  }
+  }, [allNotes])
 
-  function updateNotes() {
-    if (currentNote.title.trim().length === 0 || currentNote.description.trim().length === 0) {
+  const updateNotes = useCallback(() => {
+    if (currentNote.title.trim() === "" || currentNote.description.trim() === "") {
       alert("Empty title/description acceptable to update")
       return
     }
 
-    let updatedNotes = allNotes.map((note, index) =>
+    let updatedNotes = allNotes?.map((note, index) =>
     (updatableNoteId === index
-      ? { title: currentNote.title, description: currentNote.description, timestamp: new Date() }
+      ? { title: currentNote?.title, description: currentNote?.description, timestamp: new Date() }
       : note)
     )
 
@@ -184,27 +188,15 @@ function App() {
       timestamp: ''
     })
     setUpdateableNoteId(null)
-    setNoteOp('Add')
-  }
+    setButtonName('Add')
+  }, [currentNote, allNotes, setSaveNotes, updatableNoteId])
 
   // Search note logics
-  function search() {
-    let searchedNote = allNotes.find(item => item.title === searchText)
-    if (searchedNote === undefined) {
-      setStatus("Search failed");
-      alert("Not Found")
-      return
-    }
-
-    // setSearchedNote(note)
-    setStatus("Searched Success");
-  }
-
   const displayNotes = useMemo(() => {
-    const query = searchText.trim().toLowerCase();
+    const query = searchText?.trim().toLowerCase();
     if (!query) return allNotes;
 
-    return allNotes.filter(note => note.title.toLowerCase().includes(query))
+    return allNotes?.filter(note => note.title.toLowerCase().includes(query))
   }, [searchText, allNotes])
 
 
@@ -218,7 +210,7 @@ function App() {
         <input style={styles.title} type='text' ref={titleRef} value={currentNote.title} onChange={(e) => handleChangeTitle(e)} />
         <label >Description</label>
         <textarea style={styles.textarea} value={currentNote.description} onChange={(e) => handleChangeDes(e)} />
-        <button style={styles.addBtn} onClick={() => noteOp === 'Add' ? addNotes() : updateNotes()}>{noteOp}</button>
+        <button style={styles.addBtn} onClick={() => buttonName === 'Add' ? addNotes() : updateNotes()}>{buttonName}</button>
         <p style={styles.status} >{status}</p>
       </div>
       <hr />
@@ -226,21 +218,13 @@ function App() {
       <div style={styles.main}>
         <label style={styles?.allNote}>Search Notes : </label>
         <input type="text" placeholder="Type title name to search" style={styles.title} value={searchText} onChange={(e) => setSearchText(e.target.value)} />
-        <button style={styles.addBtn} onClick={() => search()}>Search</button>
-        {searchedNote && (
-          <div style={styles.searchedNoteCard}>
-            <p>Title : {searchedNote.title}</p>
-            <p>Description : {searchedNote.description}</p>
-            <p>createdAt : {getFormatedTime(searchedNote.timestamp)}</p>
-          </div>
-        )}
       </div>
       <hr />
       {/* list notes */}
       <div style={styles.main}>
         <p style={styles.allNote}>All Notes  <span style={styles.count}>{notesTotalCount}</span></p>
         <div style={styles.noteCardMain}>
-          {value.length > 0 ? value.map((note, index) => (
+          {displayNotes ? displayNotes.map((note, index) => (
             <div key={index} style={styles.noteCard} >
               <h5>Title : {note.title}</h5>
               <p>Description : {note.description}</p>
