@@ -15,9 +15,8 @@ export function useLocalStorage(key, initialValue) {
     })
 
     useEffect(() => {
-        console.log("fetched localStorage data");
         localStorage.setItem(key, JSON.stringify(savedNotes));
-    }, [savedNotes])
+    }, [savedNotes, key])
 
     return { savedNotes, setSaveNotes }
 }

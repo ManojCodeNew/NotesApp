@@ -130,7 +130,6 @@ function App() {
 
   // Count total count logic
   const totalCharCount = useMemo(() => {
-    console.log("total Char calculated");
     return allNotes?.reduce((totalCount, note) => {
       return totalCount += note?.title.length + note?.description.length
     }, 0);
