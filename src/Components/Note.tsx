@@ -69,7 +69,7 @@ function Note() {
 
     return (
         <>
-            <div>
+            <div style={{padding:'40px', backgroundColor:'crimson'}}>
                 <input type="text" value={currentNote.title} onChange={(e) => setCurrentNote(prev => ({ ...prev, title: e.target.value }))} />
                 <input type="text" value={currentNote.description} onChange={(e) => setCurrentNote(prev => ({ ...prev, description: e.target.value }))} />
                 <button onClick={() => buttonText === 'Add' ? handleAddNote() : handleUpdateNote()}>{buttonText} Note</button>
