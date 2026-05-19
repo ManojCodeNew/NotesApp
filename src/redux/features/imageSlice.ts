@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
-export const fetchImages = createAsyncThunk('fetchImages', async () => {
+export const fetchImages = createAsyncThunk('fetchImages', async (imageQuery:string) => {
     console.log("Image fetching...");
 
-    const unsplashResponse = await fetch("https://api.unsplash.com/search/photos?query=car&per_page=25&page=2", {
+    const unsplashResponse = await fetch(`https://api.unsplash.com/search/photos?query=${imageQuery}&per_page=25&page=2`, {
         headers: {
             Authorization: 'Client-ID tgL7xlD8YxlJJgeZ_-FC8cQgFMfBIntvsJEujJmxB_c'
         }

@@ -25,14 +25,14 @@ function Note() {
 
 
     useEffect(() => {
-        dispatch(fetchImages())
+        dispatch(fetchImages('smal_phone'))
     }, [dispatch])
 
     useEffect(() => {
-    if (fetchedImages?.images?.results) {
-        setAllImages(fetchedImages.images.results)
-    }
-}, [fetchedImages])
+        if (fetchedImages?.images?.results) {
+            setAllImages(fetchedImages.images.results)
+        }
+    }, [fetchedImages])
 
     const handleAddNote = useCallback(() => {
         const finalCurrentNote = { ...currentNote, id: allNotes?.length + 1 };
@@ -62,9 +62,10 @@ function Note() {
         )
     } else if (fetchedImages.loading) {
         return (
-            <p style={{textAlign:'center',fontWeight:'bolder'}}>Loading...</p>
+            <p style={{ textAlign: 'center', fontWeight: 'bolder' }}>Loading...</p>
         )
     }
+    console.log(allImgs);
 
     return (
         <>
@@ -86,22 +87,30 @@ function Note() {
                 ))}
             </div>
 
-            <div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                    {allImgs.map((img, index) => (
-                        <img
-                            key={index}
-                            src={img.urls.small}
-                            alt="Unsplash"
-                            style={{
-                                width: "18%",
-                                height: "200px",
-                                objectFit: "cover",
-                                borderRadius: "10px",
-                            }}
-                        />
-                    ))}
-                </div>
+            <div style={{ flexWrap: "wrap", gap: "10px" }}>
+                {allImgs.map((img) => (
+
+                    <>
+                        <div  key={img.id} style={{ padding: '30px', backgroundColor: `${img.color}` }}>
+                            <img
+                                key={img.id}
+                                src={img.urls.small}
+                                alt="Unsplash"
+                                style={{
+                                    width: "18%",
+                                    height: "200px",
+                                    objectFit: "cover",
+                                    borderRadius: "10px",
+                                }}
+                            />
+                        </div>
+                        <p>Likes : {img.likes}</p>
+                        <p>Slug : {img.alternative_slugs.en}</p>
+                    </>
+
+
+
+                ))}
             </div>
         </>
     )
