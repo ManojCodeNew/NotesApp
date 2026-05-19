@@ -1,13 +1,14 @@
-import { useCallback, useState } from 'react'
-import type { RootState } from '../redux/Store'
-import { useSelector, useDispatch } from 'react-redux'
+import { useCallback, useEffect, useState } from 'react'
 import { addNote, deleteNote, updateNote } from '../redux/features/noteSlice'
+import { useAppDispatch, useAppSelector } from '../redux/hook'
+import { fetchImages } from '../redux/features/imageSlice'
 
 interface Note {
     id: number,
     title: string,
     description: string
 }
+
 function Note() {
     const [currentNote, setCurrentNote] = useState({
         id: '',
@@ -16,13 +17,28 @@ function Note() {
     })
     const [buttonText, setButtonText] = useState("Add")
     const [editableNoteId, setEditableNoteId] = useState<number>()
+    const [allImgs, setAllImages] = useState<any[]>([])
 
-    const allNotes = useSelector((state: RootState) => state);
+    const allNotes = useAppSelector(state => state.note)
+    const fetchedImages = useAppSelector(state => state.image)
+    const dispatch = useAppDispatch()
+
+
+    useEffect(() => {
+        dispatch(fetchImages())
+    }, [dispatch])
+
+    useEffect(() => {
+    if (fetchedImages?.images?.results) {
+        setAllImages(fetchedImages.images.results)
+    }
+}, [fetchedImages])
 
     const handleAddNote = useCallback(() => {
         const finalCurrentNote = { ...currentNote, id: allNotes?.length + 1 };
         dispatch(addNote(finalCurrentNote))
-    }, [currentNote, allNotes])
+    }, [currentNote, allNotes, dispatch])
+
 
     const setEditNote = useCallback((noteId: number | string) => {
         setCurrentNote(allNotes.find((note: Note) => note.id === noteId))
@@ -40,7 +56,16 @@ function Note() {
         setButtonText("Add")
     }, [editableNoteId, currentNote])
 
-    const dispatch = useDispatch();
+    if (fetchedImages.error) {
+        return (
+            <p>Image fetch error</p>
+        )
+    } else if (fetchedImages.loading) {
+        return (
+            <p style={{textAlign:'center',fontWeight:'bolder'}}>Loading...</p>
+        )
+    }
+
     return (
         <>
             <div>
@@ -59,6 +84,24 @@ function Note() {
                         <button onClick={() => dispatch(deleteNote(note.id))}>Delete</button>
                     </div>
                 ))}
+            </div>
+
+            <div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                    {allImgs.map((img, index) => (
+                        <img
+                            key={index}
+                            src={img.urls.small}
+                            alt="Unsplash"
+                            style={{
+                                width: "18%",
+                                height: "200px",
+                                objectFit: "cover",
+                                borderRadius: "10px",
+                            }}
+                        />
+                    ))}
+                </div>
             </div>
         </>
     )

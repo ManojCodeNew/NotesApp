@@ -1,5 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice} from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
+
+
 interface Note {
     id: number,
     title: string,
