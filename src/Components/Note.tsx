@@ -1,7 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
+import type { RootState } from '../redux/Store'
 import { useSelector, useDispatch } from 'react-redux'
 import { addNote, deleteNote, updateNote } from '../redux/features/noteSlice'
 
+interface Note {
+    id: number,
+    title: string,
+    description: string
+}
 function Note() {
     const [currentNote, setCurrentNote] = useState({
         id: '',
@@ -9,26 +15,26 @@ function Note() {
         description: ''
     })
     const [buttonText, setButtonText] = useState("Add")
-    const [editableNoteId, setEditableNoteId] = useState()
+    const [editableNoteId, setEditableNoteId] = useState<number>()
 
-    const allNotes = useSelector((state) => state);
+    const allNotes = useSelector((state: RootState) => state);
 
     const handleAddNote = useCallback(() => {
         const finalCurrentNote = { ...currentNote, id: allNotes?.length + 1 };
         dispatch(addNote(finalCurrentNote))
     }, [currentNote, allNotes])
 
-    const setEditNote = useCallback((noteId) => {
-        setCurrentNote(allNotes.find(note => note.id === noteId))
+    const setEditNote = useCallback((noteId: number | string) => {
+        setCurrentNote(allNotes.find((note: Note) => note.id === noteId))
         setButtonText("Edit")
-        setEditableNoteId(noteId)
+        setEditableNoteId(Number(noteId))
     }, [allNotes])
 
     const handleUpdateNote = useCallback(() => {
-        const finalEditedNote = {
-            editNoteId: editableNoteId,
-            updatedTitle: currentNote.title,
-            updatedDescription: currentNote.description
+        const finalEditedNote: Note = {
+            id: editableNoteId as number,
+            title: currentNote.title,
+            description: currentNote.description
         }
         dispatch(updateNote(finalEditedNote))
         setButtonText("Add")
@@ -44,7 +50,7 @@ function Note() {
             </div>
 
             <div>
-                {allNotes && allNotes?.map(note => (
+                {allNotes && allNotes?.map((note: any) => (
                     <div key={note.id} style={{ margin: '5px', border: "1px solid black", width: 'fit-content', padding: '10px' }}>
                         <p >Id : {note.id}</p>
                         <p >Title : {note.title}</p>
